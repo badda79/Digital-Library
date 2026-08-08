@@ -8,33 +8,392 @@ import uuid
 # 1. إعدادات الصفحة والتهيئة الأساسية
 # ==========================================
 st.set_page_config(
-    page_title="منصة مكتبة الهندسة",
-    page_icon="🏛️",
+    page_title="مكتبة الهندسة الرقمية",
+    page_icon=":material/local_library:",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
+# ------------------------------------------
+# Design System: ألوان، خطوط، مسافات موحّدة
+# فلسفة التصميم: هوية أكاديمية هادئة (Navy + Neutral)
+# لون أساسي واحد (Navy) + محايدات + ألوان حالة فقط (نجاح/تحذير/خطأ)
+# ------------------------------------------
 st.markdown("""
-    <style>
-    .main-title {
-        font-size: 2.2rem;
-        color: #1E3A8A;
-        text-align: center;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    .sub-caption {
-        text-align: center;
-        color: #4B5563;
-        font-size: 1.1rem;
-        margin-bottom: 2rem;
-    }
-    .stButton>button {
-        width: 100%;
-        border-radius: 8px;
-        font-weight: bold;
-    }
-    </style>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* ============================================================
+   هوية "الأرشيف" — نظام تصميم أصلي مستوحى من فهارس المكتبات
+   الورقية وسجلات الأرشيف الأكاديمي، بدل قوالب الـ SaaS الجاهزة.
+
+   - عرض (Serif/Fraunces): للعناوين، بشخصية طباعية واضحة.
+   - Inter: للواجهة والنصوص التشغيلية.
+   - JetBrains Mono: للبيانات الوصفية (تواريخ، أرقام، وسوم حالة)
+     بأسلوب "بطاقة الفهرسة".
+   - لون واحد جريء (طوبي محروق) بدل الأزرق المؤسسي المعتاد.
+   ============================================================ */
+
+:root {
+    --ink: #1B1815;
+    --ink-soft: #6E6455;
+    --ink-faint: #A79C8A;
+    --paper: #F4EEE3;
+    --paper-raised: #FBF7EF;
+    --line: #DDD1BA;
+    --accent: #A8481F;
+    --accent-hover: #8A3A18;
+    --accent-soft: #EFDCC6;
+    --success: #3E6A46;
+    --success-bg: #E6EDDF;
+    --warning: #8A6A1E;
+    --warning-bg: #F3E9CE;
+    --error: #A23628;
+    --error-bg: #F3DFD5;
+    --radius: 3px;
+}
+
+html, body, [class*="css"] {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.stApp {
+    background-color: var(--paper);
+}
+
+#MainMenu, footer {visibility: hidden;}
+
+/* خلفية بنسيج ورقي خفيف جداً بدل السطح المسطح المعتاد */
+.stApp {
+    background-image:
+        radial-gradient(var(--line) 0.6px, transparent 0.6px);
+    background-size: 22px 22px;
+    background-position: -8px -8px;
+}
+.main .block-container {
+    padding-top: 2.25rem;
+    max-width: 1180px;
+}
+
+/* ===== رأس الصفحة: بطاقة فهرسة كبيرة ===== */
+.page-header {
+    padding: 0 0 1.75rem 0;
+    margin-bottom: 2.25rem;
+    border-bottom: 2px solid var(--ink);
+    position: relative;
+}
+.page-header .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+}
+.page-header .eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 22px;
+    height: 1px;
+    background: var(--accent);
+}
+.page-header h1 {
+    font-family: 'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-size: 2.6rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--ink);
+    margin: 0 0 0.6rem 0;
+    letter-spacing: -0.01em;
+}
+.page-header p {
+    color: var(--ink-soft);
+    font-size: 1rem;
+    max-width: 46rem;
+    margin: 0;
+}
+
+/* ===== قوائم موارد بأسلوب "بطاقة الفهرسة" — خطوط فاصلة بدل الصناديق ===== */
+.archive-row {
+    display: block;
+    padding: 1.1rem 0;
+    border-bottom: 1px solid var(--line);
+    transition: padding-right 0.18s ease;
+}
+.archive-row:hover {
+    padding-right: 0.4rem;
+}
+.archive-row .row-top {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.3rem;
+}
+.archive-row .row-index {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.archive-row .item-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 1.08rem;
+}
+.archive-row .item-meta {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-faint);
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 1.4rem;
+}
+
+/* بديل مضغوط (للطلبات المعلقة داخل الإدارة) */
+.content-card {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-right: 3px solid var(--accent);
+    border-radius: 2px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 0.65rem;
+}
+.content-card .item-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    color: var(--ink);
+    font-size: 1.02rem;
+    margin-bottom: 0.25rem;
+}
+.content-card .item-meta {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* ===== وسوم حالة بأسلوب "ختم الأرشيف" بدل الشارات المدورة ===== */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid currentColor;
+    border-radius: 2px;
+}
+.status-pill.success { color: var(--success); background: var(--success-bg); }
+.status-pill.warning { color: var(--warning); background: var(--warning-bg); }
+
+/* ===== أزرار: مستطيلة، حروف متباعدة، بلا انحناءات مبالغ فيها ===== */
+.stButton>button {
+    width: 100%;
+    border-radius: var(--radius);
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    border: 1.5px solid var(--ink);
+    padding: 0.55rem 1rem;
+    transition: all 0.15s ease;
+    background-color: transparent;
+    color: var(--ink);
+}
+.stButton>button:hover {
+    background-color: var(--ink);
+    color: var(--paper) !important;
+    border-color: var(--ink);
+}
+.stButton>button[kind="primary"] {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+}
+.stButton>button[kind="primary"]:hover {
+    background-color: var(--accent-hover);
+    border-color: var(--accent-hover);
+    color: var(--paper) !important;
+}
+.stButton>button[kind="secondary"] {
+    background-color: transparent !important;
+    color: var(--ink) !important;
+    border-color: var(--line) !important;
+}
+.stButton>button[kind="secondary"] p,
+.stButton>button[kind="secondary"] span {
+    color: inherit !important;
+}
+.stButton>button[kind="secondary"]:hover {
+    color: var(--paper) !important;
+    background-color: var(--ink) !important;
+    border-color: var(--ink) !important;
+}
+div[data-testid="stLinkButton"] a {
+    border-radius: var(--radius) !important;
+    border: 1.5px solid var(--ink) !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.03em;
+}
+
+/* ===== حقول الإدخال: خط سفلي بدل الصندوق الكامل ===== */
+.stTextInput input, .stTextArea textarea {
+    border: none !important;
+    border-bottom: 1.5px solid var(--line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    padding-right: 0 !important;
+    color: var(--ink) !important;
+}
+.stTextInput input:focus, .stTextArea textarea:focus {
+    border-bottom-color: var(--accent) !important;
+    box-shadow: none !important;
+}
+.stSelectbox div[data-baseweb="select"] {
+    border-radius: var(--radius) !important;
+    border-color: var(--line) !important;
+}
+label[data-testid="stWidgetLabel"] p {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-soft) !important;
+}
+
+/* ===== الشريط الجانبي: "عمود الأرشيف" الداكن، بتباين قوي مع الصفحة ===== */
+section[data-testid="stSidebar"] {
+    background-color: var(--ink);
+    border-right: none;
+}
+section[data-testid="stSidebar"] * {
+    color: var(--paper);
+}
+.sidebar-brand {
+    padding: 0.25rem 0 1.5rem 0;
+    border-bottom: 1px solid rgba(244,238,227,0.15);
+    margin-bottom: 1.5rem;
+}
+.sidebar-brand .brand-mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent-soft);
+    margin-bottom: 0.6rem;
+}
+.sidebar-brand .brand-name {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: var(--paper);
+}
+.sidebar-brand .brand-sub {
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+    margin-top: 0.4rem;
+}
+.sidebar-footnote {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    line-height: 1.7;
+    color: var(--ink-faint);
+    padding: 0.9rem 0;
+    border-top: 1px solid rgba(244,238,227,0.15);
+    margin-top: 1.5rem;
+}
+
+/* أزرار التنقل — فهرس رقمي بخط جانبي يتحرك عند التفعيل/التمرير */
+section[data-testid="stSidebar"] .stButton>button {
+    text-align: right !important;
+    background: transparent !important;
+    border: none !important;
+    border-right: 2px solid transparent !important;
+    border-radius: 0 !important;
+    color: var(--ink-faint) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.01em;
+    padding: 0.65rem 0.9rem !important;
+    transition: all 0.15s ease;
+}
+section[data-testid="stSidebar"] .stButton>button:hover {
+    color: var(--paper) !important;
+    border-right-color: var(--ink-faint) !important;
+    background: rgba(244,238,227,0.04) !important;
+}
+.nav-btn.active .stButton>button,
+section[data-testid="stSidebar"] .nav-btn.active button {
+    color: var(--paper) !important;
+    border-right-color: var(--accent) !important;
+    background: rgba(168,72,31,0.14) !important;
+    font-weight: 600 !important;
+}
+
+/* فواصل */
+hr {
+    border-color: var(--line) !important;
+}
+
+/* ===== تبويبات (Tabs): أسلوب فهرس أفقي بخط تحت التبويب النشط ===== */
+button[data-baseweb="tab"] {
+    color: var(--ink-soft) !important;
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.01em;
+}
+button[data-baseweb="tab"] p {
+    color: inherit !important;
+}
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: var(--ink) !important;
+    font-weight: 700 !important;
+}
+div[data-baseweb="tab-highlight"] {
+    background-color: var(--accent) !important;
+    height: 2.5px !important;
+}
+div[data-baseweb="tab-border"] {
+    background-color: var(--line) !important;
+}
+
+/* ===== تثبيت الألوان العامة + العناوين الفرعية بالخط العريض ===== */
+.stApp, .stApp p, .stApp label, .stApp span {
+    color: var(--ink);
+}
+h2, h3, .stApp [data-testid="stMarkdownContainer"] h3 {
+    font-family: 'Fraunces', serif !important;
+    font-weight: 600 !important;
+    color: var(--ink) !important;
+}
+
+/* رسائل النظام (نجاح/خطأ/تنبيه/معلومة) بحواف حادة بدل المدورة */
+div[data-testid="stAlert"] {
+    border-radius: 2px !important;
+    border-width: 1px 1px 1px 3px !important;
+    border-style: solid !important;
+}
+
+/* تبويب/تاب فورم — إزالة الظل الافتراضي عن العناصر */
+div[data-testid="stForm"] {
+    border: 1px solid var(--line) !important;
+    border-radius: var(--radius) !important;
+    background: var(--paper-raised) !important;
+}
+</style>
 """, unsafe_allow_html=True)
 
 # ==========================================
@@ -146,87 +505,151 @@ def upload_file_secure(file_obj, is_pending=True):
 # ==========================================
 # 5. الشريط الجانبي للتنقل
 # ==========================================
+NAV_ITEMS = [
+    {"key": "library", "label": "تصفح المكتبة", "icon": ":material/local_library:"},
+    {"key": "upload", "label": "اضافة ملف", "icon": ":material/upload_file:"},
+    {"key": "admin", "label": "لوحة تحكم المشرف", "icon": ":material/admin_panel_settings:"},
+]
+
 def render_sidebar():
-    st.sidebar.markdown("### 🎛️ خيارات النظام")
-    app_mode = st.sidebar.selectbox(
-        "اختر القسم:", 
-        ["📚 تصفح المكتبة", "📤 مساهمة طالب (رفع ملف)", "🔐 لوحة تحكم المشرف"]
-    )
-    st.sidebar.markdown("---")
-    st.sidebar.info("💡 منصة هندسية آمنة ومزودة بنظام مراجعة وموافقة ذكي.")
-    return app_mode
+    if "app_mode" not in st.session_state:
+        st.session_state.app_mode = "library"
+
+    st.sidebar.markdown("""
+        <div class="sidebar-brand">
+            <div class="brand-mark">Vol. 01 — Archive</div>
+            <div class="brand-name">مكتبة الهندسة<br/>الرقمية</div>
+            <div class="brand-sub">منصة أكاديمية موحّدة للموارد الدراسية</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    for idx, item in enumerate(NAV_ITEMS, start=1):
+        is_active = st.session_state.app_mode == item["key"]
+        wrapper_class = "nav-btn active" if is_active else "nav-btn"
+        st.sidebar.markdown(f'<div class="{wrapper_class}">', unsafe_allow_html=True)
+        if st.sidebar.button(
+            f"{idx:02d}   {item['label']}",
+            key=f"nav_{item['key']}",
+            icon=item["icon"],
+            use_container_width=True,
+        ):
+            st.session_state.app_mode = item["key"]
+            st.rerun()
+        st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+    st.sidebar.markdown("""
+        <div class="sidebar-footnote">
+            نظام رفع الموارد يمر عبر مراجعة واعتماد من المشرف قبل النشر النهائي في المكتبة.
+        </div>
+    """, unsafe_allow_html=True)
+
+    return st.session_state.app_mode
 
 # ==========================================
 # 6. الواجهة الرئيسية لتصفح المكتبة
 # ==========================================
+def page_header(eyebrow: str, title: str, subtitle: str, icon: str = ""):
+    st.markdown(f"""
+        <div class="page-header">
+            <div class="eyebrow">{eyebrow}</div>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+        </div>
+    """, unsafe_allow_html=True)
+
 def render_main_library():
-    st.markdown('<div class="main-title">🏛️ منصة مكتبة الهندسة</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-caption">التسلسل الأكاديمي: التخصص ⬅️ السنة الدراسية ⬅️ السمستر ⬅️ المادة</div>', unsafe_allow_html=True)
-    
-    spec = st.selectbox("1️⃣ اختر التخصص الهندسي:", list(ACADEMIC_STRUCTURE.keys()), key="lib_spec")
-    year = st.selectbox("2️⃣ اختر السنة الدراسية:", list(ACADEMIC_STRUCTURE[spec].keys()), key="lib_year")
-    sem = st.selectbox("3️⃣ اختر السمستر (الفصل الدراسي):", ACADEMIC_STRUCTURE[spec][year], key="lib_sem")
-    
+    page_header(
+        "المكتبة",
+        "تصفح مكتبة الهندسة",
+        "اختر التخصص، السنة، السمستر، ثم المادة للوصول إلى الموارد المتاحة."
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        spec = st.selectbox("التخصص الهندسي", list(ACADEMIC_STRUCTURE.keys()), key="lib_spec")
+        sem = None
+    with col2:
+        year = st.selectbox("السنة الدراسية", list(ACADEMIC_STRUCTURE[spec].keys()), key="lib_year")
+
+    sem = st.selectbox("السمستر (الفصل الدراسي)", ACADEMIC_STRUCTURE[spec][year], key="lib_sem")
+
     subjects_data = fetch_subjects_from_db(spec, year, sem)
     subjects_list = [item["subject_name"] for item in subjects_data]
-    
+
     if not subjects_list:
-        st.warning("⚠️ لا توجد مواد مسجلة لهذا السمستر حتى الآن. يمكنك إضافتها عبر لوحة التحكم.")
+        st.info("لا توجد مواد مسجلة لهذا السمستر حتى الآن. يمكن إضافتها عبر لوحة التحكم.", icon=":material/info:")
         subject = None
     else:
-        subject = st.selectbox("4️⃣ اختر المادة الدراسية:", subjects_list, key="lib_sub")
-        
+        subject = st.selectbox("المادة الدراسية", subjects_list, key="lib_sub")
+
     if subject:
-        st.markdown("---")
-        st.subheader(f"📂 الامتحانات والموارد الخاصة بمادة: {subject}")
+        st.markdown("<div style='height: 1.25rem'></div>", unsafe_allow_html=True)
+        st.subheader(f"الموارد الخاصة بمادة: {subject}")
         exams = fetch_published_exams(spec, year, sem, subject)
-        
+
         if not exams:
-            st.info("📭 لا توجد امتحانات مرفوعة لهذه المادة حتى الآن.")
+            st.info("لا توجد موارد مرفوعة لهذه المادة حتى الآن.", icon=":material/folder_off:")
         else:
-            for exam in exams:
-                with st.container():
-                    cols = st.columns([3, 1])
-                    with cols[0]:
-                        st.markdown(f"📄 **{exam.get('title', 'ملف امتحان')}**")
-                        st.caption(f"📅 تاريخ الإضافة: {exam.get('created_at', '')[:10]}")
-                    with cols[1]:
-                        file_url = exam.get('file_url')
-                        if file_url:
-                            st.markdown(f"[🔗 معاينة وتحميل]({file_url})", unsafe_allow_html=True)
-                st.divider()
+            for idx, exam in enumerate(exams, start=1):
+                col_info, col_action = st.columns([5, 1])
+                with col_info:
+                    st.markdown(f"""
+                        <div class="archive-row">
+                            <div class="row-top">
+                                <span class="row-index">{idx:02d}</span>
+                                <span class="item-title">{exam.get('title', 'مورد أكاديمي')}</span>
+                            </div>
+                            <span class="item-meta">أُضيف بتاريخ {exam.get('created_at', '')[:10]}</span>
+                        </div>
+                    """, unsafe_allow_html=True)
+                with col_action:
+                    file_url = exam.get('file_url')
+                    if file_url:
+                        st.link_button("معاينة وتحميل", file_url, use_container_width=True, icon=":material/download:")
 
 # ==========================================
 # 7. صفحة مساهمة طالب
 # ==========================================
 def render_student_upload():
-    st.markdown("### 📤 مساهمة طالب (رفع امتحان جديد)")
-    st.caption("التسلسل: التخصص ⬅️ السنة الدراسية ⬅️ السمستر (التابع للسنة فقط) ⬅️ المادة ⬅️ اسم الامتحان ⬅️ رفع ملف PDF")
-    
-    spec = st.selectbox("1️⃣ اختر التخصص الهندسي:", list(ACADEMIC_STRUCTURE.keys()), key="stu_spec_fixed")
-    year = st.selectbox("2️⃣ اختر السنة الدراسية:", list(ACADEMIC_STRUCTURE[spec].keys()), key="stu_year_fixed")
-    
+    page_header(
+        "اضافة",
+        "اضافة ملف  — رفع مورد جديد",
+        "التسلسل: التخصص، ثم السنة، ثم السمستر، ثم المادة، ثم رفع الملف PDF للمراجعة."
+    )
+
+    col1, col2 = st.columns(2)
+    with col1:
+        spec = st.selectbox("التخصص الهندسي", list(ACADEMIC_STRUCTURE.keys()), key="stu_spec_fixed")
+    with col2:
+        year = st.selectbox("السنة الدراسية", list(ACADEMIC_STRUCTURE[spec].keys()), key="stu_year_fixed")
+
     sem_options = ACADEMIC_STRUCTURE[spec][year]
-    sem = st.selectbox("3️⃣ اختر السمستر (الفصل الدراسي):", sem_options, key=f"stu_sem_{spec}_{year}")
-    
+    sem = st.selectbox("السمستر (الفصل الدراسي)", sem_options, key=f"stu_sem_{spec}_{year}")
+
     subjects_data = fetch_subjects_from_db(spec, year, sem)
     subjects_list = [item["subject_name"] for item in subjects_data]
-    
+
     if subjects_list:
-        subject = st.selectbox("4️⃣ اختر المادة الدراسية:", subjects_list, key=f"stu_sub_{spec}_{year}_{sem}")
+        subject = st.selectbox("المادة الدراسية", subjects_list, key=f"stu_sub_{spec}_{year}_{sem}")
     else:
-        subject = st.selectbox("4️⃣ اختر المادة الدراسية:", ["لا توجد مواد مسجلة لهذا السمستر"], key=f"stu_sub_empty_{spec}_{year}_{sem}")
-        
-    title = st.text_input("5️⃣ اسم الامتحان:", key="stu_title_fixed")
-    uploaded_file = st.file_uploader("6️⃣ رفع ملف PDF:", type=["pdf"], key="stu_file_fixed")
-    
-    submitted = st.button("7️⃣ زر رفع الملف", key="stu_submit_btn")
-    
+        subject = st.selectbox("المادة الدراسية", ["لا توجد مواد مسجلة لهذا السمستر"], key=f"stu_sub_empty_{spec}_{year}_{sem}")
+
+    title = st.text_input("عنوان المورد", key="stu_title_fixed", placeholder="مثال:امتحان 2026 ")
+    uploaded_file = st.file_uploader(
+        "رفع ملف PDF",
+        type=["pdf"],
+        key="stu_file_fixed",
+        help="الحد الأقصى لحجم الملف 15 ميجابايت، وبصيغة PDF فقط."
+    )
+
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+    submitted = st.button("إرسال للمراجعة", key="stu_submit_btn", type="primary", icon=":material/send:")
+
     if submitted:
         if not title or not uploaded_file or not subject or subject == "لا توجد مواد مسجلة لهذا السمستر":
-            st.error("❌ يرجى إكمال الحقول واختيار مادة صحيحة وإرفاق ملف PDF.")
+            st.error("يرجى إكمال الحقول واختيار مادة صحيحة وإرفاق ملف PDF.", icon=":material/error:")
         else:
-            with st.spinner("⏳ جاري رفع الملف..."):
+            with st.spinner("جاري رفع الملف..."):
                 public_url, msg = upload_file_secure(uploaded_file, is_pending=True)
                 if public_url:
                     try:
@@ -238,46 +661,52 @@ def render_student_upload():
                             "title": title,
                             "file_url": public_url
                         }).execute()
-                        st.success("🎉 تم إرسال الملف بنجاح إلى الطلبات المعلقة للمراجعة!")
+                        st.success("تم إرسال الملف بنجاح إلى الطلبات المعلقة للمراجعة.", icon=":material/check_circle:")
                     except Exception as db_err:
-                        st.error(f"خطأ في قاعدة البيانات: {db_err}")
+                        st.error(f"خطأ في قاعدة البيانات: {db_err}", icon=":material/error:")
                 else:
-                    st.error(msg)
+                    st.error(msg, icon=":material/error:")
 
 # ==========================================
 # 8. لوحة تحكم الأدمن (مع نظام إضافة وتعديل وحذف المواد)
 # ==========================================
 def render_admin_dashboard():
-    st.markdown('<div class="main-title">🔐 لوحة تحكم المشرفين</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-caption">إدارة المواد الدراسية، الطلبات المعلقة، ونشر الموارد</div>', unsafe_allow_html=True)
-    
-    admin_password = st.text_input("كلمة مرور المشرف:", type="password", key="admin_pass_input")
-    
+    page_header(
+        "الإدارة",
+        "لوحة تحكم المشرفين",
+        "إدارة المواد الدراسية، مراجعة الطلبات المعلقة، ونشر الموارد."
+    )
+
+    admin_password = st.text_input("كلمة مرور المشرف", type="password", key="admin_pass_input")
+
     if admin_password == "090909":
-        st.success("✅ تم التحقق بنجاح.")
-        
+        st.markdown("""
+            <span class="status-pill success">تم التحقق بنجاح</span>
+        """, unsafe_allow_html=True)
+        st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+
         admin_tab1, admin_tab2, admin_tab3, admin_tab4 = st.tabs([
-            "📚 إدارة وإضافة المواد", 
-            "📥 الطلبات المعلقة", 
-            "🚀 رفع مباشر", 
-            "⚙️ إدارة الموارد المنشورة"
+            "إدارة وإضافة المواد",
+            "الطلبات المعلقة",
+            "رفع مباشر",
+            "إدارة الموارد المنشورة"
         ])
-        
+
         # Tab 1: إدارة وإضافة وتعديل المواد الدراسية
         with admin_tab1:
-            st.subheader("📚 إضافة وتعديل المواد الدراسية في الهيكل الأكاديمي")
-            
-            sub_action = st.radio("اختر العملية:", ["➕ إضافة مادة جديدة", "✏️ تعديل أو حذف مادة موجودة"], horizontal=True)
-            
-            if sub_action == "➕ إضافة مادة جديدة":
+            st.subheader("إضافة وتعديل المواد الدراسية في الهيكل الأكاديمي")
+
+            sub_action = st.radio("العملية", ["إضافة مادة جديدة", "تعديل أو حذف مادة موجودة"], horizontal=True, label_visibility="collapsed")
+
+            if sub_action == "إضافة مادة جديدة":
                 with st.form("add_subject_form"):
-                    m_spec = st.selectbox("اختر التخصص الهندسي:", list(ACADEMIC_STRUCTURE.keys()), key="add_m_spec")
-                    m_year = st.selectbox("اختر السنة الدراسية:", list(ACADEMIC_STRUCTURE[m_spec].keys()), key="add_m_year")
-                    m_sem = st.selectbox("اختر السمستر:", ACADEMIC_STRUCTURE[m_spec][m_year], key="add_m_sem")
-                    m_name = st.text_input("اسم المادة الجديدة:")
-                    
-                    submit_subject = st.form_submit_button("حفظ وإضافة المادة")
-                    
+                    m_spec = st.selectbox("التخصص الهندسي", list(ACADEMIC_STRUCTURE.keys()), key="add_m_spec")
+                    m_year = st.selectbox("السنة الدراسية", list(ACADEMIC_STRUCTURE[m_spec].keys()), key="add_m_year")
+                    m_sem = st.selectbox("السمستر", ACADEMIC_STRUCTURE[m_spec][m_year], key="add_m_sem")
+                    m_name = st.text_input("اسم المادة الجديدة")
+
+                    submit_subject = st.form_submit_button("حفظ وإضافة المادة", type="primary", icon=":material/add:")
+
                     if submit_subject:
                         if m_name.strip():
                             try:
@@ -287,116 +716,119 @@ def render_admin_dashboard():
                                     "semester": m_sem,
                                     "subject_name": m_name.strip()
                                 }).execute()
-                                st.success(f"🎉 تم إضافة المادة ({m_name}) بنجاح وربطها بالهيكل!")
+                                st.success(f"تم إضافة المادة ({m_name}) بنجاح وربطها بالهيكل.", icon=":material/check_circle:")
                                 time.sleep(1)
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"خطأ أثناء الإضافة: {e}")
+                                st.error(f"خطأ أثناء الإضافة: {e}", icon=":material/error:")
                         else:
-                            st.error("يرجى كتابة اسم المادة.")
-            
+                            st.error("يرجى كتابة اسم المادة.", icon=":material/error:")
+
             else: # تعديل أو حذف مادة
-                st.markdown("### ✏️ تعديل أو حذف مواد السمسترات الحالية")
-                e_spec = st.selectbox("تصفية حسب التخصص:", list(ACADEMIC_STRUCTURE.keys()), key="edit_m_spec")
-                e_year = st.selectbox("تصفية حسب السنة:", list(ACADEMIC_STRUCTURE[e_spec].keys()), key="edit_m_year")
-                e_sem = st.selectbox("تصفية حسب السمستر:", ACADEMIC_STRUCTURE[e_spec][e_year], key="edit_m_sem")
-                
+                st.markdown("##### تعديل أو حذف مواد السمسترات الحالية")
+                e_spec = st.selectbox("تصفية حسب التخصص", list(ACADEMIC_STRUCTURE.keys()), key="edit_m_spec")
+                e_year = st.selectbox("تصفية حسب السنة", list(ACADEMIC_STRUCTURE[e_spec].keys()), key="edit_m_year")
+                e_sem = st.selectbox("تصفية حسب السمستر", ACADEMIC_STRUCTURE[e_spec][e_year], key="edit_m_sem")
+
                 current_subjects = fetch_subjects_from_db(e_spec, e_year, e_sem)
-                
+
                 if not current_subjects:
-                    st.info("لا توجد مواد مسجلة في هذا السمستر لتعديلها.")
+                    st.info("لا توجد مواد مسجلة في هذا السمستر لتعديلها.", icon=":material/info:")
                 else:
                     for sub in current_subjects:
                         col_n, col_edit, col_del = st.columns([2, 2, 1])
                         with col_n:
-                            st.write(f"📖 **{sub['subject_name']}**")
+                            st.markdown(f"<div class='item-title' style='padding-top:0.6rem'>{sub['subject_name']}</div>", unsafe_allow_html=True)
                         with col_edit:
-                            new_name_input = st.text_input("تعديل الاسم", value=sub['subject_name'], key=f"rename_{sub['id']}")
-                            if st.button("حفظ التعديل", key=f"save_ren_{sub['id']}"):
+                            new_name_input = st.text_input("تعديل الاسم", value=sub['subject_name'], key=f"rename_{sub['id']}", label_visibility="collapsed")
+                            if st.button("حفظ التعديل", key=f"save_ren_{sub['id']}", use_container_width=True):
                                 try:
                                     supabase.table("subjects").update({"subject_name": new_name_input.strip()}).eq("id", sub['id']).execute()
-                                    st.success("تم تحديث اسم المادة بنجاح!")
+                                    st.success("تم تحديث اسم المادة بنجاح.", icon=":material/check_circle:")
                                     time.sleep(1)
                                     st.rerun()
                                 except Exception as e:
-                                    st.error(f"خطأ: {e}")
+                                    st.error(f"خطأ: {e}", icon=":material/error:")
                         with col_del:
-                            if st.button("🗑️ حذف", key=f"del_sub_{sub['id']}"):
+                            if st.button("حذف", key=f"del_sub_{sub['id']}", use_container_width=True, icon=":material/delete:"):
                                 try:
                                     supabase.table("subjects").delete().eq("id", sub['id']).execute()
-                                    st.warning("تم حذف المادة.")
+                                    st.warning("تم حذف المادة.", icon=":material/warning:")
                                     time.sleep(1)
                                     st.rerun()
                                 except Exception as e:
-                                    st.error(f"خطأ: {e}")
+                                    st.error(f"خطأ: {e}", icon=":material/error:")
                         st.divider()
 
         # Tab 2: الطلبات المعلقة
         with admin_tab2:
-            st.subheader("📋 قائمة الطلبات المعلقة بانتظار الموافقة")
+            st.subheader("قائمة الطلبات المعلقة بانتظار الموافقة")
             try:
                 pending_res = supabase.table("pending_exams").select("*").execute()
                 pending_items = pending_res.data
-                
+
                 if not pending_items:
-                    st.info("لا توجد طلبات معلقة حالياً.")
+                    st.info("لا توجد طلبات معلقة حالياً.", icon=":material/info:")
                 else:
                     for item in pending_items:
-                        with st.container():
-                            st.markdown(f"### 📄 {item.get('title')}")
-                            st.write(f"التخصص: {item.get('specialization')} | السنة: {item.get('year')} | السمستر: {item.get('semester')} | المادة: {item.get('subject')}")
-                            file_url = item.get('file_url')
-                            if file_url:
-                                st.markdown(f"[🔗 معاينة / تحميل الملف المرفق]({file_url})", unsafe_allow_html=True)
-                            
-                            col_approve, col_reject = st.columns(2)
-                            with col_approve:
-                                if st.button("✅ موافقة ونشر", key=f"approve_{item.get('id')}"):
-                                    supabase.table("exams").insert({
-                                        "specialization": item.get('specialization'),
-                                        "year": item.get('year'),
-                                        "semester": item.get('semester'),
-                                        "subject": item.get('subject'),
-                                        "title": item.get('title'),
-                                        "file_url": file_url
-                                    }).execute()
-                                    supabase.table("pending_exams").delete().eq("id", item.get('id')).execute()
-                                    st.success("تمت الموافقة ونشر الملف بنجاح!")
-                                    time.sleep(1)
-                                    st.rerun()
-                                    
-                            with col_reject:
-                                if st.button("❌ رفض وحذف", key=f"reject_{item.get('id')}"):
-                                    supabase.table("pending_exams").delete().eq("id", item.get('id')).execute()
-                                    st.warning("تم رفض وحذف الطلب.")
-                                    time.sleep(1)
-                                    st.rerun()
+                        st.markdown(f"""
+                            <div class="content-card">
+                                <div class="item-title">{item.get('title')}</div>
+                                <div class="item-meta">{item.get('specialization')} · {item.get('year')} · {item.get('semester')} · {item.get('subject')}</div>
+                            </div>
+                        """, unsafe_allow_html=True)
+                        file_url = item.get('file_url')
+                        if file_url:
+                            st.link_button("معاينة الملف المرفق", file_url, icon=":material/visibility:")
+
+                        col_approve, col_reject = st.columns(2)
+                        with col_approve:
+                            if st.button("موافقة ونشر", key=f"approve_{item.get('id')}", type="primary", use_container_width=True, icon=":material/check:"):
+                                supabase.table("exams").insert({
+                                    "specialization": item.get('specialization'),
+                                    "year": item.get('year'),
+                                    "semester": item.get('semester'),
+                                    "subject": item.get('subject'),
+                                    "title": item.get('title'),
+                                    "file_url": file_url
+                                }).execute()
+                                supabase.table("pending_exams").delete().eq("id", item.get('id')).execute()
+                                st.success("تمت الموافقة ونشر الملف بنجاح.", icon=":material/check_circle:")
+                                time.sleep(1)
+                                st.rerun()
+
+                        with col_reject:
+                            if st.button("رفض وحذف", key=f"reject_{item.get('id')}", use_container_width=True, icon=":material/close:"):
+                                supabase.table("pending_exams").delete().eq("id", item.get('id')).execute()
+                                st.warning("تم رفض وحذف الطلب.", icon=":material/warning:")
+                                time.sleep(1)
+                                st.rerun()
                         st.divider()
             except Exception as e:
-                st.error(f"خطأ في جلب الطلبات المعلقة: {e}")
+                st.error(f"خطأ في جلب الطلبات المعلقة: {e}", icon=":material/error:")
 
         # Tab 3: رفع مباشر للأدمن
         with admin_tab3:
-            st.subheader("🚀 رفع ونشر مباشر (تخطي الموافقة)")
-            ad_spec = st.selectbox("1️⃣ اختر التخصص الهندسي:", list(ACADEMIC_STRUCTURE.keys()), key="ad_spec_fixed")
-            ad_year = st.selectbox("2️⃣ اختر السنة الدراسية:", list(ACADEMIC_STRUCTURE[ad_spec].keys()), key="ad_year_fixed")
-            
+            st.subheader("رفع ونشر مباشر (تخطي الموافقة)")
+            ad_spec = st.selectbox("التخصص الهندسي", list(ACADEMIC_STRUCTURE.keys()), key="ad_spec_fixed")
+            ad_year = st.selectbox("السنة الدراسية", list(ACADEMIC_STRUCTURE[ad_spec].keys()), key="ad_year_fixed")
+
             ad_sem_options = ACADEMIC_STRUCTURE[ad_spec][ad_year]
-            ad_sem = st.selectbox("3️⃣ اختر السمستر (الفصل الدراسي):", ad_sem_options, key=f"ad_sem_{ad_spec}_{ad_year}")
-            
+            ad_sem = st.selectbox("السمستر (الفصل الدراسي)", ad_sem_options, key=f"ad_sem_{ad_spec}_{ad_year}")
+
             ad_subjects_data = fetch_subjects_from_db(ad_spec, ad_year, ad_sem)
             ad_subjects_list = [item["subject_name"] for item in ad_subjects_data]
-            
+
             if ad_subjects_list:
-                ad_subject = st.selectbox("4️⃣ اختر المادة الدراسية:", ad_subjects_list, key=f"ad_sub_{ad_spec}_{ad_year}_{ad_sem}")
+                ad_subject = st.selectbox("المادة الدراسية", ad_subjects_list, key=f"ad_sub_{ad_spec}_{ad_year}_{ad_sem}")
             else:
-                ad_subject = st.selectbox("4️⃣ اختر المادة الدراسية:", ["لا توجد مواد مسجلة لهذا السمستر"], key=f"ad_sub_empty_{ad_spec}_{ad_year}_{ad_sem}")
-            
-            ad_title = st.text_input("5️⃣ اسم الامتحان:", key="ad_title_fixed")
-            ad_file = st.file_uploader("6️⃣ رفع ملف PDF:", type=["pdf"], key="ad_file_fixed")
-            
-            submitted_direct = st.button("7️⃣ زر رفع الملف", key="ad_submit_btn")
-            
+                ad_subject = st.selectbox("المادة الدراسية", ["لا توجد مواد مسجلة لهذا السمستر"], key=f"ad_sub_empty_{ad_spec}_{ad_year}_{ad_sem}")
+
+            ad_title = st.text_input("عنوان المورد", key="ad_title_fixed")
+            ad_file = st.file_uploader("رفع ملف PDF", type=["pdf"], key="ad_file_fixed")
+
+            submitted_direct = st.button("نشر مباشرة", key="ad_submit_btn", type="primary", icon=":material/publish:")
+
             if submitted_direct:
                 if ad_file and ad_title and ad_subject and ad_subject != "لا توجد مواد مسجلة لهذا السمستر":
                     with st.spinner("جاري رفع ونشر الملف..."):
@@ -410,48 +842,55 @@ def render_admin_dashboard():
                                 "title": ad_title,
                                 "file_url": public_url
                             }).execute()
-                            st.success("🎉 تم نشر الملف مباشرة في المكتبة بنجاح!")
+                            st.success("تم نشر الملف مباشرة في المكتبة بنجاح.", icon=":material/check_circle:")
                             time.sleep(1)
                             st.rerun()
                         else:
-                            st.error(msg)
+                            st.error(msg, icon=":material/error:")
                 else:
-                    st.error("يرجى التأكد من اكتمال الحقول وإرفاق ملف PDF صالح.")
+                    st.error("يرجى التأكد من اكتمال الحقول وإرفاق ملف PDF صالح.", icon=":material/error:")
 
         # Tab 4: إدارة الحذف للموارد المنشورة
         with admin_tab4:
-            st.subheader("⚙️ إدارة أو حذف الموارد المنشورة")
+            st.subheader("إدارة أو حذف الموارد المنشورة")
             try:
                 all_exams_res = supabase.table("exams").select("*").execute()
                 all_exams = all_exams_res.data
                 if not all_exams:
-                    st.info("لا توجد موارد منشورة حالياً.")
+                    st.info("لا توجد موارد منشورة حالياً.", icon=":material/info:")
                 else:
-                    for ex in all_exams:
-                        col_info, col_del = st.columns([3, 1])
+                    for idx, ex in enumerate(all_exams, start=1):
+                        col_info, col_del = st.columns([4, 1])
                         with col_info:
-                            st.write(f"📄 **{ex.get('title')}** | {ex.get('specialization')} - {ex.get('year')} - {ex.get('semester')} - {ex.get('subject')}")
+                            st.markdown(f"""
+                                <div class="archive-row">
+                                    <div class="row-top">
+                                        <span class="row-index">{idx:02d}</span>
+                                        <span class="item-title">{ex.get('title')}</span>
+                                    </div>
+                                    <span class="item-meta">{ex.get('specialization')} · {ex.get('year')} · {ex.get('semester')} · {ex.get('subject')}</span>
+                                </div>
+                            """, unsafe_allow_html=True)
                         with col_del:
-                            if st.button("🗑️ حذف", key=f"del_pub_{ex.get('id')}"):
+                            if st.button("حذف", key=f"del_pub_{ex.get('id')}", use_container_width=True, icon=":material/delete:"):
                                 supabase.table("exams").delete().eq("id", ex.get('id')).execute()
-                                st.success("تم حذف المورد بنجاح.")
+                                st.success("تم حذف المورد بنجاح.", icon=":material/check_circle:")
                                 time.sleep(1)
                                 st.rerun()
-                        st.divider()
             except Exception as e:
-                st.error(f"خطأ في جلب الموارد: {e}")
+                st.error(f"خطأ في جلب الموارد: {e}", icon=":material/error:")
 
     elif admin_password:
-        st.error("❌ كلمة المرور غير صحيحة.")
+        st.error("كلمة المرور غير صحيحة.", icon=":material/lock:")
 
 # ==========================================
 # 9. نقطة التشغيل الرئيسية
 # ==========================================
 def main():
     app_mode = render_sidebar()
-    if app_mode == "📚 تصفح المكتبة":
+    if app_mode == "library":
         render_main_library()
-    elif app_mode == "📤 مساهمة طالب (رفع ملف)":
+    elif app_mode == "upload":
         render_student_upload()
     else:
         render_admin_dashboard()

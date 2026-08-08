@@ -14,6 +14,23 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# تهيئة حالة الوضع الداكن/الفاتح (تُحفظ في الجلسة الحالية)
+if "theme" not in st.session_state:
+    st.session_state.theme = "light"
+
+# لوحتا الألوان: فاتح (ورقي دافئ) وداكن (أرشيف ليلي)
+THEMES = {
+    "light": {
+        "ink": "#1B1815", "ink_soft": "#6E6455", "ink_faint": "#A79C8A",
+        "paper": "#F4EEE3", "paper_raised": "#FBF7EF", "line": "#DDD1BA",
+    },
+    "dark": {
+        "ink": "#F2ECDD", "ink_soft": "#C9BEA8", "ink_faint": "#8B8071",
+        "paper": "#17140F", "paper_raised": "#211D16", "line": "#3A342A",
+    },
+}
+_active_theme = THEMES[st.session_state.theme]
+
 # ------------------------------------------
 # Design System: ألوان، خطوط، مسافات موحّدة
 # فلسفة التصميم: هوية أكاديمية هادئة (Navy + Neutral)
@@ -35,21 +52,27 @@ st.markdown("""
    ============================================================ */
 
 :root {
-    --ink: #1B1815;
-    --ink-soft: #6E6455;
-    --ink-faint: #A79C8A;
-    --paper: #F4EEE3;
-    --paper-raised: #FBF7EF;
-    --line: #DDD1BA;
+    --ink: __INK__;
+    --ink-soft: __INK_SOFT__;
+    --ink-faint: __INK_FAINT__;
+    --paper: __PAPER__;
+    --paper-raised: __PAPER_RAISED__;
+    --line: __LINE__;
     --accent: #A8481F;
     --accent-hover: #8A3A18;
     --accent-soft: #EFDCC6;
+    --on-accent: #FBF3E7;
     --success: #3E6A46;
     --success-bg: #E6EDDF;
     --warning: #8A6A1E;
     --warning-bg: #F3E9CE;
     --error: #A23628;
     --error-bg: #F3DFD5;
+    /* ثابتة دائماً بغض النظر عن الوضع الداكن/الفاتح — عمود الأرشيف الجانبي */
+    --sb-bg: #1B1815;
+    --sb-text: #F4EEE3;
+    --sb-text-faint: #A79C8A;
+    --sb-line: rgba(244,238,227,0.18);
     --radius: 3px;
 }
 
@@ -218,12 +241,12 @@ html, body, [class*="css"] {
 .stButton>button[kind="primary"] {
     background-color: var(--accent);
     border-color: var(--accent);
-    color: var(--paper);
+    color: var(--on-accent);
 }
 .stButton>button[kind="primary"]:hover {
     background-color: var(--accent-hover);
     border-color: var(--accent-hover);
-    color: var(--paper) !important;
+    color: var(--on-accent) !important;
 }
 .stButton>button[kind="secondary"] {
     background-color: transparent !important;
@@ -271,18 +294,18 @@ label[data-testid="stWidgetLabel"] p {
     color: var(--ink-soft) !important;
 }
 
-/* ===== الشريط الجانبي: "عمود الأرشيف" الداكن، بتباين قوي مع الصفحة ===== */
+/* ===== الشريط الجانبي: "عمود الأرشيف" الداكن، ثابت بغض النظر عن الوضع ===== */
 section[data-testid="stSidebar"] {
-    background-color: var(--ink);
+    background-color: var(--sb-bg);
     border-right: none;
 }
 section[data-testid="stSidebar"] * {
-    color: var(--paper);
+    color: var(--sb-text);
 }
 .sidebar-brand {
     padding: 0.25rem 0 1.5rem 0;
-    border-bottom: 1px solid rgba(244,238,227,0.15);
-    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--sb-line);
+    margin-bottom: 1.25rem;
 }
 .sidebar-brand .brand-mark {
     font-family: 'JetBrains Mono', monospace;
@@ -297,11 +320,11 @@ section[data-testid="stSidebar"] * {
     font-weight: 600;
     font-size: 1.5rem;
     line-height: 1.2;
-    color: var(--paper);
+    color: var(--sb-text);
 }
 .sidebar-brand .brand-sub {
     font-size: 0.78rem;
-    color: var(--ink-faint);
+    color: var(--sb-text-faint);
     margin-top: 0.4rem;
 }
 .sidebar-footnote {
@@ -309,20 +332,22 @@ section[data-testid="stSidebar"] * {
     font-size: 0.68rem;
     letter-spacing: 0.02em;
     line-height: 1.7;
-    color: var(--ink-faint);
+    color: var(--sb-text-faint);
     padding: 0.9rem 0;
-    border-top: 1px solid rgba(244,238,227,0.15);
+    border-top: 1px solid var(--sb-line);
     margin-top: 1.5rem;
 }
 
-/* أزرار التنقل — فهرس رقمي بخط جانبي يتحرك عند التفعيل/التمرير */
+/* أزرار التنقل — حدود واضحة دائمة لكل عنصر + تمييز إضافي عند التفعيل */
+.nav-btn {
+    margin-bottom: 0.55rem;
+}
 section[data-testid="stSidebar"] .stButton>button {
     text-align: right !important;
-    background: transparent !important;
-    border: none !important;
-    border-right: 2px solid transparent !important;
-    border-radius: 0 !important;
-    color: var(--ink-faint) !important;
+    background: rgba(244,238,227,0.02) !important;
+    border: 1px solid var(--sb-line) !important;
+    border-radius: var(--radius) !important;
+    color: var(--sb-text-faint) !important;
     font-family: 'Inter', sans-serif !important;
     font-weight: 500 !important;
     letter-spacing: 0.01em;
@@ -330,16 +355,73 @@ section[data-testid="stSidebar"] .stButton>button {
     transition: all 0.15s ease;
 }
 section[data-testid="stSidebar"] .stButton>button:hover {
-    color: var(--paper) !important;
-    border-right-color: var(--ink-faint) !important;
-    background: rgba(244,238,227,0.04) !important;
+    color: var(--sb-text) !important;
+    border-color: var(--sb-text-faint) !important;
+    background: rgba(244,238,227,0.06) !important;
 }
 .nav-btn.active .stButton>button,
 section[data-testid="stSidebar"] .nav-btn.active button {
-    color: var(--paper) !important;
-    border-right-color: var(--accent) !important;
-    background: rgba(168,72,31,0.14) !important;
+    color: var(--sb-text) !important;
+    border-color: var(--accent) !important;
+    background: rgba(168,72,31,0.16) !important;
     font-weight: 600 !important;
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+/* فاصل خفيف بين خيارات التنقل وزر تبديل الوضع */
+.sidebar-divider {
+    height: 1px;
+    background: var(--sb-line);
+    margin: 0.9rem 0 0.9rem 0;
+}
+
+/* زر تبديل الوضع الداكن/الفاتح — دائري، يتوسط الشريط الجانبي، مختلف تماماً عن أزرار التنقل */
+.theme-toggle {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.2rem;
+}
+.theme-toggle div[data-testid="stButton"] {
+    width: auto !important;
+}
+.theme-toggle .stButton>button {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: 1px dashed var(--sb-line) !important;
+    color: var(--sb-text-faint) !important;
+    box-shadow: none !important;
+}
+.theme-toggle .stButton>button:hover {
+    color: var(--accent-soft) !important;
+    border: 1px solid var(--accent-soft) !important;
+    background: rgba(244,238,227,0.06) !important;
+}
+
+/* ===== سهم طي/فتح الشريط الجانبي — تثبيت لون واضح في الوضعين ===== */
+/* السهم داخل الشريط الجانبي (عند فتحه) — فاتح دائماً لأن خلفية الشريط غامقة ثابتة */
+section[data-testid="stSidebar"] [data-testid*="ollapse"] svg,
+section[data-testid="stSidebar"] button[kind="header"] svg {
+    color: var(--sb-text) !important;
+    fill: var(--sb-text) !important;
+}
+/* السهم اللي يظهر فوق المحتوى الرئيسي عند طيّ الشريط — يتبع لون الوضع الحالي */
+[data-testid="collapsedControl"] svg,
+div[data-testid*="ollapsedControl"] svg,
+header[data-testid="stHeader"] [data-testid*="ollapse"] svg {
+    color: var(--ink) !important;
+    fill: var(--ink) !important;
+}
+[data-testid="collapsedControl"],
+div[data-testid*="ollapsedControl"] {
+    background: var(--paper-raised) !important;
+    border: 1px solid var(--line) !important;
+    border-radius: var(--radius) !important;
 }
 
 /* فواصل */
@@ -394,7 +476,12 @@ div[data-testid="stForm"] {
     background: var(--paper-raised) !important;
 }
 </style>
-""", unsafe_allow_html=True)
+""".replace("__INK_SOFT__", _active_theme["ink_soft"]) \
+   .replace("__INK_FAINT__", _active_theme["ink_faint"]) \
+   .replace("__INK__", _active_theme["ink"]) \
+   .replace("__PAPER_RAISED__", _active_theme["paper_raised"]) \
+   .replace("__PAPER__", _active_theme["paper"]) \
+   .replace("__LINE__", _active_theme["line"]), unsafe_allow_html=True)
 
 # ==========================================
 # 2. إعدادات الاتصال بقاعدة البيانات Supabase
@@ -507,7 +594,7 @@ def upload_file_secure(file_obj, is_pending=True):
 # ==========================================
 NAV_ITEMS = [
     {"key": "library", "label": "تصفح المكتبة", "icon": ":material/local_library:"},
-    {"key": "upload", "label": "اضافة ملف", "icon": ":material/upload_file:"},
+    {"key": "upload", "label": "مساهمة طالب", "icon": ":material/upload_file:"},
     {"key": "admin", "label": "لوحة تحكم المشرف", "icon": ":material/admin_panel_settings:"},
 ]
 
@@ -536,6 +623,18 @@ def render_sidebar():
             st.session_state.app_mode = item["key"]
             st.rerun()
         st.sidebar.markdown('</div>', unsafe_allow_html=True)
+
+    st.sidebar.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
+
+    # زر تبديل الوضع الداكن/الفاتح — أسفل خيارات التنقل، بشكل مختلف ومميّز عنها
+    is_dark = st.session_state.theme == "dark"
+    theme_icon = ":material/light_mode:" if is_dark else ":material/dark_mode:"
+    theme_label = "الوضع الفاتح" if is_dark else "الوضع الداكن"
+    st.sidebar.markdown('<div class="theme-toggle">', unsafe_allow_html=True)
+    if st.sidebar.button("", key="theme_toggle_btn", icon=theme_icon, help=theme_label):
+        st.session_state.theme = "light" if is_dark else "dark"
+        st.rerun()
+    st.sidebar.markdown('</div>', unsafe_allow_html=True)
 
     st.sidebar.markdown("""
         <div class="sidebar-footnote">
@@ -612,9 +711,9 @@ def render_main_library():
 # ==========================================
 def render_student_upload():
     page_header(
-        "اضافة",
-        "اضافة ملف  — رفع مورد جديد",
-        "التسلسل: التخصص، ثم السنة، ثم السمستر، ثم المادة، ثم رفع الملف PDF للمراجعة."
+        "المساهمات",
+        "مساهمة طالب — رفع مورد جديد",
+        "التسلسل: التخصص، ثم السنة، ثم السمستر، ثم المادة، ثم رفع ملف PDF للمراجعة."
     )
 
     col1, col2 = st.columns(2)
@@ -634,7 +733,7 @@ def render_student_upload():
     else:
         subject = st.selectbox("المادة الدراسية", ["لا توجد مواد مسجلة لهذا السمستر"], key=f"stu_sub_empty_{spec}_{year}_{sem}")
 
-    title = st.text_input("عنوان المورد", key="stu_title_fixed", placeholder="مثال:امتحان 2026 ")
+    title = st.text_input("عنوان المورد", key="stu_title_fixed", placeholder="مثال: ملخص محاضرات — خريف 2025")
     uploaded_file = st.file_uploader(
         "رفع ملف PDF",
         type=["pdf"],
